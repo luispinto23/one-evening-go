@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 //type userPayload struct {
@@ -36,7 +37,6 @@ type tweetsList struct {
 
 func (r *TweetMemoryRepository) AddTweet(m tweet) (int, error) {
 	r.tweets = append(r.tweets, m)
-	fmt.Println("TWEETS : %v", r.tweets)
 	return len(r.tweets), nil
 }
 
@@ -62,8 +62,8 @@ func main() {
 }
 
 func (s server) listTweets(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 
-	fmt.Println("IN THE GET METHOD!")
 	tweets, err := s.repository.Tweets()
 	if err != nil {
 		log.Println("Failed to add message:", err)
@@ -83,10 +83,17 @@ func (s server) listTweets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer func() {
+		duration := time.Since(start)
+		fmt.Printf("%s %s %s\n", r.Method, r.URL, duration)
+	}()
+
 	w.Write(response)
 }
 
 func (s server) addTweet(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
@@ -124,6 +131,11 @@ func (s server) addTweet(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	defer func() {
+		duration := time.Since(start)
+		fmt.Printf("%s %s %s\n", r.Method, r.URL, duration)
+	}()
 
 	w.Write(response)
 }
