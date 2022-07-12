@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -23,15 +24,19 @@ type tweetsList struct {
 }
 
 type TweetMemoryRepository struct {
-	tweets []tweet
+	Tweets []tweet
+	Lock   *sync.RWMutex
 }
 
 type Server struct {
 	Repository *TweetMemoryRepository
 }
 
-func (r *TweetMemoryRepository) Tweets() ([]tweet, error) {
-	return r.tweets, nil
+func (r *TweetMemoryRepository) ListTweets() ([]tweet, error) {
+	r.Lock.RLock()
+	defer r.Lock.RUnlock()
+
+	return r.Tweets, nil
 }
 
 //func (s Server) Tweets(w http.ResponseWriter, r *http.Request) {
@@ -43,14 +48,17 @@ func (r *TweetMemoryRepository) Tweets() ([]tweet, error) {
 //}
 
 func (r *TweetMemoryRepository) AddTweet(m tweet) (int, error) {
-	r.tweets = append(r.tweets, m)
-	return len(r.tweets), nil
+	r.Lock.Lock()
+	defer r.Lock.Unlock()
+
+	r.Tweets = append(r.Tweets, m)
+	return len(r.Tweets), nil
 }
 
 func (s Server) ListTweets(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
-	tweets, err := s.Repository.Tweets()
+	tweets, err := s.Repository.ListTweets()
 	if err != nil {
 		log.Println("Failed to add message:", err)
 		w.WriteHeader(http.StatusInternalServerError)

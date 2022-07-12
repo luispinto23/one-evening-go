@@ -5,17 +5,15 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
+	"sync"
 	"twitter/server"
 )
 
-type tweet struct {
-	Message  string `json:"message"`
-	Location string `json:"location"`
-}
-
 func main() {
 	s := server.Server{
-		Repository: &server.TweetMemoryRepository{},
+		Repository: &server.TweetMemoryRepository{
+			Lock: &sync.RWMutex{},
+		},
 	}
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
