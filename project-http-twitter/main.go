@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"log"
 	"net/http"
 	"os"
 	"sync"
+	"time"
 	"twitter/server"
 )
 
@@ -23,7 +25,7 @@ func main() {
 	r.Use(middleware.Logger)
 
 	r.Get("/tweets", s.ListTweets)
-	r.Post("/tweets", s.AddTweet)
+	r.With(httprate.LimitByIP(10, 1*time.Minute)).Post("/tweets", s.AddTweet)
 
 	go spamTweets()
 
