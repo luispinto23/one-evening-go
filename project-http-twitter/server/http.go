@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type tweet struct {
+type Tweet struct {
 	Message  string `json:"message"`
 	Location string `json:"location"`
 }
@@ -20,11 +20,11 @@ type tweetResponse struct {
 }
 
 type tweetsList struct {
-	Tweets []tweet `json:"tweets"`
+	Tweets []Tweet `json:"tweets"`
 }
 
 type TweetMemoryRepository struct {
-	Tweets []tweet
+	Tweets []Tweet
 	Lock   *sync.RWMutex
 }
 
@@ -32,7 +32,7 @@ type Server struct {
 	Repository *TweetMemoryRepository
 }
 
-func (r *TweetMemoryRepository) ListTweets() ([]tweet, error) {
+func (r *TweetMemoryRepository) ListTweets() ([]Tweet, error) {
 	r.Lock.RLock()
 	defer r.Lock.RUnlock()
 
@@ -47,7 +47,7 @@ func (r *TweetMemoryRepository) ListTweets() ([]tweet, error) {
 //	}
 //}
 
-func (r *TweetMemoryRepository) AddTweet(m tweet) (int, error) {
+func (r *TweetMemoryRepository) AddTweet(m Tweet) (int, error) {
 	r.Lock.Lock()
 	defer r.Lock.Unlock()
 
@@ -97,7 +97,7 @@ func (s Server) AddTweet(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	m := tweet{}
+	m := Tweet{}
 
 	if err := json.Unmarshal(body, &m); err != nil {
 		log.Println("Failed to unmarshal payload:", err)
